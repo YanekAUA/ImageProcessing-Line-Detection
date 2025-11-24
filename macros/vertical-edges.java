@@ -11,7 +11,11 @@ run("Close All");
 path = File.openDialog("Select a File");
 dir = File.getParent(path);
 name = File.getName(path);
+BP5_large = 40;
+BP5_small = 30;
 
+BP7_large = 40;
+BP7_small = 30;
 // --------------- CREATE TEMP DIR -------------------//
 tmp_dir_name = ".tmp";
 tmp_dir = dir + "\\" + tmp_dir_name;
@@ -54,55 +58,142 @@ close();
 selectImage("gray-source.tif");
 close();
 
-// **Strengthen the detected vertical edges** by applying **1 pixel-wide dilation in horizontal direction** and **1 pixel-wide erosion in vertical direction** (Chapter 9).
+
+// // Step 3: **Strengthen the detected vertical edges** by applying **1 pixel-wide dilation in horizontal direction** and **1 pixel-wide erosion in vertical direction** (Chapter 9).
 // DILATE HORIZONTALLY
 selectImage("vertical-edges.tif");
-run("Duplicate...", "title=vertical-edges-right-shift.tif");
-run("Duplicate...", "title=vertical-edges-left-shift.tif");
-
-selectImage("vertical-edges-left-shift.tif");
-run("Translate...", "x=-1 y=0 interpolation=None");
-
-selectImage("vertical-edges-right-shift.tif");
-run("Translate...", "x=1 y=0 interpolation=None");
-
-selectImage("vertical-edges.tif");
-imageCalculator("OR create", "vertical-edges.tif","vertical-edges-left-shift.tif");
-saveAs("Tiff", tmp_dir + "vertical-edges-dilated.tif");
+run("Duplicate...", "title=vertical-edges-dilated.tif");
 selectImage("vertical-edges-dilated.tif");
-imageCalculator("OR create", "vertical-edges-dilated.tif","vertical-edges-right-shift.tif");
+run("Convolve...", "text1=[0 0 0\n1 1 1\n0 0 0\n] normalize");
+setOption("BlackBackground", true);
+run("Convert to Mask");
 saveAs("Tiff", tmp_dir + "vertical-edges-dilated.tif");
 
 // EROODE VERTICALLY
 selectImage("vertical-edges-dilated.tif");
-run("Duplicate...", "title=vertical-edges-up-shift.tif");
-run("Duplicate...", "title=vertical-edges-down-shift.tif");
-selectImage("vertical-edges-up-shift.tif");
-run("Translate...", "x=0 y=-1 interpolation=None");
-selectImage("vertical-edges-down-shift.tif");
-run("Translate...", "x=0 y=1 interpolation=None");
-selectImage("vertical-edges-dilated.tif");
-imageCalculator("AND create", "vertical-edges-dilated.tif","vertical-edges-up-shift.tif");
-saveAs("Tiff", tmp_dir + "vertical-edges-eroded.tif");
-selectImage("vertical-edges-eroded.tif");
-imageCalculator("AND create", "vertical-edges-eroded.tif","vertical-edges-down-shift.tif");
-saveAs("Tiff", tmp_dir + "vertical-edges-eroded.tif");
-selectImage("vertical-edges-eroded.tif");
-rename("vertical-edges-final.tif");
+rename("vertical-edges-dilated-eroded.tif");
+run("Invert")
+run("Convolve...", "text1=[0 1 0\n0 1 0\n0 1 0\n] normalize");
+setAutoThreshold("Default dark no-reset");
+run("Threshold...");
+setThreshold(128, 255, "raw");
+run("Convert to Mask");
+run("Close");
+run("Invert")
 
 
-// CLOSE UNNECESSARY IMAGES
-selectImage("vertical-edges-right-shift.tif");
+saveAs("Tiff", tmp_dir + "vertical-edges-dilated-eroded.tif");
+
+selectImage("vertical-edges.tif");
 close();
-selectImage("vertical-edges-left-shift.tif");
-close();
-selectImage("vertical-edges-up-shift.tif");
-close();
-selectImage("vertical-edges-down-shift.tif");
-close();
-selectImage("vertical-edges-dilated.tif");
-close();
-selectImage("vertical-edges-eroded.tif");
-close();
-selectImage("vertical-edges-dilated.tif");
-close();
+
+
+// //Step 4: **Denoise** the image of the strengthened vertical edges by applying **linear and/or nonlinear filters of unit radius** (Chapter 5). Make sure the image stays **binary** after denoising.
+selectImage("vertical-edges-dilated-eroded.tif");
+run("Median...", "radius=2");
+saveAs("Tiff", tmp_dir + "vertical-edges-denoised.tif");
+
+//Step 5: To detect text regions (which have a high-frequency structure), apply the**Bandpass Filter**. Try different values for **large structures** and **small structures limits** (e.g., 40 and 30 pixels) to produce horizontally aligned regions that resemble words or entire text lines (Chapter 19).
+selectImage("vertical-edges-denoised.tif");
+run("Duplicate...", "title=vertical-edges-bandpassed.tif");
+selectImage("vertical-edges-bandpassed.tif");
+// run("Bandpass Filter...", "filter_large=40 filter_small=30 suppress=None tolerance=5 autoscale saturate");
+run("Bandpass Filter...", "filter_large=" + BP5_large + " filter_small=" + BP5_small + " suppress=Vertical tolerance=5 autoscale saturate");
+saveAs("Tiff", tmp_dir + "vertical-edges-bandpassed.tif");
+
+// //Step 6: If necessary, use the filtered image from step 5 as a **binary mask** for the denoised image of the vertical edges from step 4 by applying the **AND operation**.                                                                                                                                                                     
+selectImage("vertical-edges-bandpassed.tif");
+setAutoThreshold("Default dark no-reset");
+run("Convert to Mask");
+saveAs("Tiff", tmp_dir + "vertical-edges-bandpass-mask.tif");
+imageCalculator("AND create", "vertical-edges-denoised.tif","vertical-edges-bandpass-mask.tif");
+selectImage("Result of vertical-edges-denoised.tif");
+saveAs("Tiff", tmp_dir + "vertical-edges-masked.tif");
+
+// // Step 7: If step 6 was implemented, apply the same **Bandpass Filter** from step 5 to the masked image.                                                                                                                                                                                                                                        
+selectImage("vertical-edges-masked.tif");
+rename("vertical-edges-masked-bandpassed.tif");
+run("Bandpass Filter...", "filter_large=" + BP7_large + " filter_small=" + BP7_small + " suppress=Vertical tolerance=5 autoscale saturate");
+saveAs("Tiff", tmp_dir + "vertical-edges-masked-bandpassed.tif");
+setAutoThreshold("Default dark no-reset");
+run("Convert to Mask");
+
+
+// Step 8: **Analyze the particles** in the filtered image from step 5 or step 7 and show the **fitting ellipses** (Chapter 10).
+selectImage("vertical-edges-masked-bandpassed.tif");
+
+// Analyze Particles settings:
+// - show=Ellipses → draws ellipses on a new image
+// - display → shows measurement table
+// - exclude → ignore objects touching border
+// - clear → clear previous results
+// - add → add to ROI Manager
+// - in_situ → draw ellipses directly on the image
+run("Set Measurements...", "area centroid fit shape redirect=None decimal=3");
+run("Analyze Particles...", "size=20-Infinity exclude clear show=Ellipses display add in_situ");
+
+// Save ellipse overlay
+saveAs("Tiff", tmp_dir + "vertical-edges-ellipses.tif");
+
+
+// Step 9: **Skeletonize** the filtered image from step 5 or step 7 or the fitting ellipses from step 8 (Chapter 9).                                                                                                                                                                                                                             
+selectImage("vertical-edges-ellipses.tif");
+run("Duplicate...", "title=vertical-edges-ellipses-skeleton.tif");
+selectImage("vertical-edges-ellipses-skeleton.tif");
+
+run("Skeletonize");
+saveAs("Tiff", tmp_dir + "vertical-edges-ellipses-skeleton.tif");
+
+// Step 10: **Detect the horizontal lines** by applying **Hough Transform** (Chapter 7). Use **Hough_Transform.java PlugInFilter**. The horizontal lines are identified by the angle $\pi/2$. Convert the image of the Hough Transform to grayscale and apply a **threshold** to its region around angle $\pi/2$ to locate the horizontal lines. 
+selectImage("vertical-edges-ellipses-skeleton.tif");
+run("Hough Transform");
+
+// The Hough transform result window is usually called "HT"
+// For safety, rename it
+rename("Hough-Transform.tif");
+saveAs("Tiff", tmp_dir + "Hough-Transform.tif");                                                                                                                                                                                                                                                                                                                       
+
+// ---
+// Convert HT to 8-bit for thresholding
+selectImage("Hough-Transform.tif");
+run("8-bit");
+
+// Threshold automatically first:
+setAutoThreshold("Default dark no-reset");
+run("Convert to Mask");
+
+// Save thresholded peaks
+saveAs("Tiff", tmp_dir + "Hough-Transform-thresholded.tif");
+
+// ---------------------------------------------------------------
+// Locate Hough peaks (binary image from above)
+// ---------------------------------------------------------------
+selectImage("Hough-Transform-thresholded.tif");
+
+// Find centroids (each centroid corresponds to one detected line)
+run("Set Measurements...", "centroid redirect=None decimal=3");
+run("Analyze Particles...", "size=5-Infinity show=None add clear");
+
+// The peaks now exist as ROIs in ROI Manager
+
+// ---------------------------------------------------------------
+// Draw the detected lines on original image
+// ---------------------------------------------------------------
+open(path);   // reopen original for drawing
+run("8-bit");
+run("RGB Color");   // convert so lines can be drawn
+
+n = roiManager("count");
+for (i=0; i<n; i++) {
+    roiManager("Select", i);
+    // Get centroid from measure table
+    run("Measure");
+    cx = getResult("X", i); 
+    cy = getResult("Y", i);
+
+    // Draw a horizontal line across the image at y=cy
+    makeLine(0, cy, getWidth(), cy);
+    run("Add Selection...");
+}
+
+saveAs("Tiff", tmp_dir + "original-with-horizontal-lines.tif"); 
