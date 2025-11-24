@@ -54,3 +54,55 @@ close();
 selectImage("gray-source.tif");
 close();
 
+// **Strengthen the detected vertical edges** by applying **1 pixel-wide dilation in horizontal direction** and **1 pixel-wide erosion in vertical direction** (Chapter 9).
+// DILATE HORIZONTALLY
+selectImage("vertical-edges.tif");
+run("Duplicate...", "title=vertical-edges-right-shift.tif");
+run("Duplicate...", "title=vertical-edges-left-shift.tif");
+
+selectImage("vertical-edges-left-shift.tif");
+run("Translate...", "x=-1 y=0 interpolation=None");
+
+selectImage("vertical-edges-right-shift.tif");
+run("Translate...", "x=1 y=0 interpolation=None");
+
+selectImage("vertical-edges.tif");
+imageCalculator("OR create", "vertical-edges.tif","vertical-edges-left-shift.tif");
+saveAs("Tiff", tmp_dir + "vertical-edges-dilated.tif");
+selectImage("vertical-edges-dilated.tif");
+imageCalculator("OR create", "vertical-edges-dilated.tif","vertical-edges-right-shift.tif");
+saveAs("Tiff", tmp_dir + "vertical-edges-dilated.tif");
+
+// EROODE VERTICALLY
+selectImage("vertical-edges-dilated.tif");
+run("Duplicate...", "title=vertical-edges-up-shift.tif");
+run("Duplicate...", "title=vertical-edges-down-shift.tif");
+selectImage("vertical-edges-up-shift.tif");
+run("Translate...", "x=0 y=-1 interpolation=None");
+selectImage("vertical-edges-down-shift.tif");
+run("Translate...", "x=0 y=1 interpolation=None");
+selectImage("vertical-edges-dilated.tif");
+imageCalculator("AND create", "vertical-edges-dilated.tif","vertical-edges-up-shift.tif");
+saveAs("Tiff", tmp_dir + "vertical-edges-eroded.tif");
+selectImage("vertical-edges-eroded.tif");
+imageCalculator("AND create", "vertical-edges-eroded.tif","vertical-edges-down-shift.tif");
+saveAs("Tiff", tmp_dir + "vertical-edges-eroded.tif");
+selectImage("vertical-edges-eroded.tif");
+rename("vertical-edges-final.tif");
+
+
+// CLOSE UNNECESSARY IMAGES
+selectImage("vertical-edges-right-shift.tif");
+close();
+selectImage("vertical-edges-left-shift.tif");
+close();
+selectImage("vertical-edges-up-shift.tif");
+close();
+selectImage("vertical-edges-down-shift.tif");
+close();
+selectImage("vertical-edges-dilated.tif");
+close();
+selectImage("vertical-edges-eroded.tif");
+close();
+selectImage("vertical-edges-dilated.tif");
+close();
