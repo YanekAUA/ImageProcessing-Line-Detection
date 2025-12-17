@@ -23,7 +23,7 @@ public class Hough_Transform implements PlugInFilter {
 		
 		for (int col = -w2; col < w2; col++)
 			for (int row = -h2; row < h2; row++) 
-				if (imageSpace.getPixel(col + w2, row + h2) < 150) 
+				if (imageSpace.getPixel(col + w2, row + h2) > 120) 
 					for (double t = 0; t < tMax; t += dt) {
 						r = col * Math.cos(t) + row * Math.sin(t);
 						i = (int) (t / dt + 0.5);

@@ -145,8 +145,21 @@ saveAs("Tiff", tmp_dir + "vertical-edges-ellipses.tif");
 // MARK: Step 9: **Skeletonize** the filtered image from step 5 or step 7 or the fitting ellipses from step 8 (Chapter 9).                                                                                                                                                                                                                             
 selectImage("vertical-edges-ellipses.tif");
 run("Skeletonize");
+// run("Invert");
 saveAs("Tiff", tmp_dir + "vertical-edges-ellipses-skeleton.tif");
 
 // MARK: Step 10: **Detect the horizontal lines** by applying **Hough Transform** (Chapter 7). Use **Hough_Transform.java PlugInFilter**. The horizontal lines are identified by the angle $\pi/2$. Convert the image of the Hough Transform to grayscale and apply a **threshold** to its region around angle $\pi/2$ to locate the horizontal lines. 
 selectImage("vertical-edges-ellipses-skeleton.tif");
 run("Hough Transform");
+saveAs("Tiff", tmp_dir + "Hough.tif");
+
+// MARK: Step 11: Find the maximum areas in the Hough Transform image around angle $\pi/2$ and use these to determine the positions of the horizontal lines in the original image. Draw these lines on the original image to visualize the detected text lines.
+selectImage("Hough");
+run("8-bit");
+run("Get Horizontal Lines From Hough");
+saveAs("Tiff", tmp_dir + "Hough-horizontal-lines.tif");
+
+// MARK: Step 12: **Right Projection**: Apply the **Right_Projection.java PlugInFilter** to the final filtered image from step 5 or step 7 to visualize the text lines more clearly.
+selectImage("vertical-edges-masked-bandpassed.tif");
+run("Right Projection");
+saveAs("Tiff", tmp_dir + "Right-Projection.tif");
