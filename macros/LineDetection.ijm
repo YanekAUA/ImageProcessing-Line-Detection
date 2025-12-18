@@ -154,7 +154,7 @@ run("Hough Transform");
 saveAs("Tiff", tmp_dir + "Hough.tif");
 
 // MARK: Step 11: Find the maximum areas in the Hough Transform image around angle $\pi/2$ and use these to determine the positions of the horizontal lines in the original image. Draw these lines on the original image to visualize the detected text lines.
-selectImage("Hough");
+selectImage("Hough.tif");
 run("8-bit");
 run("Get Horizontal Lines From Hough");
 saveAs("Tiff", tmp_dir + "Hough-horizontal-lines.tif");
