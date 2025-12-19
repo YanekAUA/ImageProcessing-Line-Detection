@@ -7,6 +7,7 @@
 // MARK: Step 1: **Setup** the environment by clearing any existing images and selecting the input image file. Create a temporary directory to store intermediate results.
 run("Close All");
 // --- Filename variables (use these instead of repeating strings) ---
+graySource = "00-gray-source.tif";
 eastEdges = "01-east-edges.tif";
 westEdges = "02-west-edges.tif";
 verticalEdges = "03-vertical-edges.tif";
@@ -20,19 +21,16 @@ verticalEdgesMaskedBandpassed = "10-vertical-edges-masked-bandpassed.tif";
 verticalEdgesEllipses = "11-vertical-edges-ellipses.tif";
 verticalEdgesSkeleton = "12-vertical-edges-skeleton.tif";
 hough = "13-Hough.tif";
-houghHorizontalLines = "14-Hough-horizontal-lines.tif";
-rightProjection = "15-Right-Projection.tif";
-graySource = "16-gray-source.tif";
+hough_enhanced = "14-hough-enhanced.tif";
+hough_thresholded = "15-hough-thresholded.tif";
+rightProjection = "16-Right-Projection.tif";
+originalWithBoundingBoxes = "17-Original-with-Bounding-Boxes.tif";
 
 // ----------------- SELECT AN IMAGE ---------------------//
 path = File.openDialog("Select a File");
 dir = File.getParent(path);
 name = File.getName(path);
-BP5_large = 40;
-BP5_small = 30;
 
-BP7_large = 40;
-BP7_small = 30;
 
 // --------------- CREATE TEMP DIR -------------------//
 tmp_dir_name = ".tmp";
@@ -48,7 +46,17 @@ print(tmp_dir);
 open(path); // LOAD
 run("8-bit"); // GRAY SCALE
 saveAs("Tiff", tmp_dir + graySource);
-
+// Compute bandpass filter sizes as percentages of image height
+height = getHeight();
+BP5_large = round(height * 0.030);
+BP5_small = round(height * 0.024);
+print("Bandpass Filter 5 - Large structures: " + BP5_large + ", Small structures: " + BP5_small);
+// Ensure minimum useful sizes
+if (BP5_large < 1) BP5_large = 1;
+if (BP5_small < 1) BP5_small = 1;
+// Use same proportions for BP7 by default (can be adjusted independently later)
+BP7_large = BP5_large;
+BP7_small = BP5_small;
 run("Duplicate...", "title=" + eastEdges);
 selectImage(eastEdges);
 
@@ -92,14 +100,14 @@ saveAs("Tiff", tmp_dir + verticalEdgesDilated);
 // EROODE VERTICALLY
 selectImage(verticalEdgesDilated);
 rename(verticalEdgesDilatedEroded);
-run("Invert")
+run("Invert");
 run("Convolve...", "text1=[0 1 0\n0 1 0\n0 1 0\n] normalize");
 setAutoThreshold("Default dark no-reset");
 run("Threshold...");
 setThreshold(128, 255, "raw");
 run("Convert to Mask");
 run("Close");
-run("Invert")
+run("Invert");
 
 
 saveAs("Tiff", tmp_dir + verticalEdgesDilatedEroded);
@@ -157,7 +165,7 @@ run("Convert to Mask");
 run("Fill Holes");
 // Save ellipse overlay
 saveAs("Tiff", tmp_dir + verticalEdgesEllipses);
-
+close; //ELLIPSES add more issues than help
 
 // MARK: Step 9: **Skeletonize** the filtered image from step 5 or step 7 or the fitting ellipses from step 8 (Chapter 9).                                                                                                                                                                                                                             
 selectImage(verticalEdgesMaskedBandpassed);
@@ -174,9 +182,27 @@ saveAs("Tiff", tmp_dir + hough);
 
 // MARK: Step 11: Find the maximum areas in the Hough Transform image around angle $\pi/2$ and use these to determine the positions of the horizontal lines in the original image. Draw these lines on the original image to visualize the detected text lines.
 selectImage(hough);
-run("8-bit");
-run("Get Horizontal Lines From Hough");
-saveAs("Tiff", tmp_dir + houghHorizontalLines);
+
+run("Duplicate...", "title=" + hough_enhanced);
+
+run("Enhance Contrast", "saturated=0.35"); // Enhance contrast to make lines more visible
+run("Apply LUT");
+
+setAutoThreshold("RenyiEntropy dark"); // Choose an appropriate thresholding method to get areas
+run("Convert to Mask");
+run("Close-");
+saveAs("Tiff", tmp_dir + hough_thresholded);
+
+selectImage(hough_thresholded);
+run("Horizontal Elbow Filter"); // Custom Plugin to filter horizontal lines based on elbow method (max area)
+    
+// Draw Bounding Boxes on Original Image
+open(path); // LOAD
+saveAs("Tiff", tmp_dir + originalWithBoundingBoxes);
+
+run("Hough To BoundingBox", "hough=" + hough_thresholded + " preprocessed=" + verticalEdgesMaskedBandpassed + " target=" + originalWithBoundingBoxes);
+selectImage("Burned_" + originalWithBoundingBoxes);
+saveAs("Tiff", tmp_dir + originalWithBoundingBoxes);
 
 // MARK: Step 12: **Right Projection**: Apply the **Right_Projection.java PlugInFilter** to the final filtered image from step 5 or step 7 to visualize the text lines more clearly.
 selectImage(verticalEdgesMaskedBandpassed);
