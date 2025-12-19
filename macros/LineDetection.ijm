@@ -7,22 +7,22 @@
 // MARK: Step 1: **Setup** the environment by clearing any existing images and selecting the input image file. Create a temporary directory to store intermediate results.
 run("Close All");
 // --- Filename variables (use these instead of repeating strings) ---
-eastEdges = "east-edges.tif";
-westEdges = "west-edges.tif";
-verticalEdges = "vertical-edges.tif";
-verticalEdgesDilated = "vertical-edges-dilated.tif";
-verticalEdgesDilatedEroded = "vertical-edges-dilated-eroded.tif";
-verticalEdgesDenoised = "vertical-edges-denoised.tif";
-verticalEdgesBandpassed = "vertical-edges-bandpassed.tif";
-verticalEdgesBandpassMask = "vertical-edges-bandpass-mask.tif";
-verticalEdgesMasked = "vertical-edges-masked.tif";
-verticalEdgesMaskedBandpassed = "vertical-edges-masked-bandpassed.tif";
-verticalEdgesEllipses = "vertical-edges-ellipses.tif";
-verticalEdgesSkeleton = "vertical-edges-skeleton.tif";
-hough = "Hough.tif";
-houghHorizontalLines = "Hough-horizontal-lines.tif";
-rightProjection = "Right-Projection.tif";
-graySource = "gray-source.tif";
+eastEdges = "01-east-edges.tif";
+westEdges = "02-west-edges.tif";
+verticalEdges = "03-vertical-edges.tif";
+verticalEdgesDilated = "04-vertical-edges-dilated.tif";
+verticalEdgesDilatedEroded = "05-vertical-edges-dilated-eroded.tif";
+verticalEdgesDenoised = "06-vertical-edges-denoised.tif";
+verticalEdgesBandpassed = "07-vertical-edges-bandpassed.tif";
+verticalEdgesBandpassMask = "08-vertical-edges-bandpass-mask.tif";
+verticalEdgesMasked = "09-vertical-edges-masked.tif";
+verticalEdgesMaskedBandpassed = "10-vertical-edges-masked-bandpassed.tif";
+verticalEdgesEllipses = "11-vertical-edges-ellipses.tif";
+verticalEdgesSkeleton = "12-vertical-edges-skeleton.tif";
+hough = "13-Hough.tif";
+houghHorizontalLines = "14-Hough-horizontal-lines.tif";
+rightProjection = "15-Right-Projection.tif";
+graySource = "16-gray-source.tif";
 
 // ----------------- SELECT AN IMAGE ---------------------//
 path = File.openDialog("Select a File");
