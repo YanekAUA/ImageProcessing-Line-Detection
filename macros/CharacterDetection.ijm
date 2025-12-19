@@ -29,9 +29,5 @@ run("Apply LUT");
 run("Threshold...");
 setThreshold(255, 255);
 run("Convert to Mask");
-run("Close");
-
-
-
-
-run("FFT R to Vertical Lines", "original=text_crop.jpg fft=[FFT of text_crop.jpg] keep angle=15 deduplicate=5 minimum=15");
+run("Close-");
+run("Close-");
