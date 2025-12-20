@@ -1,0 +1,11 @@
+run("Install... ", "install=[Text Recognition Project/plugins/Elbow_Filter_Plugin.java] save=[D:/Apps/ImageJ/plugins/Image Processing Course/Elbow_Filter_Plugin.java]");
+run("Install... ", "install=[Text Recognition Project/plugins/FFT_R_to_Vertical_Lines.java] save=[D:/Apps/ImageJ/plugins/Image Processing Course/FFT_R_to_Vertical_Lines.java]");
+run("Install... ", "install=[Text Recognition Project/plugins/Get_Horizontal_Lines_From_Hough.java] save=[D:/Apps/ImageJ/plugins/Image Processing Course/Get_Horizontal_Lines_From_Hough.java]");
+run("Install... ", "install=[Text Recognition Project/plugins/Horizontal_Elbow_Filter.java] save=[D:/Apps/ImageJ/plugins/Image Processing Course/Horizontal_Elbow_Filter.java]");
+run("Install... ", "install=[Text Recognition Project/plugins/Hough_Horizontal_Lines.java] save=[D:/Apps/ImageJ/plugins/Image Processing Course/Hough_Horizontal_Lines.java]");
+run("Install... ", "install=[Text Recognition Project/plugins/Hough_To_BoundingBox.java] save=[D:/Apps/ImageJ/plugins/Image Processing Course/Hough_To_BoundingBox.java]");
+run("Install... ", "install=[Text Recognition Project/plugins/Hough_Transform.java] save=[D:/Apps/ImageJ/plugins/Image Processing Course/Hough_Transform.java]");
+run("Install... ", "install=[Text Recognition Project/plugins/Particle_Analyzer_TopK.java] save=[D:/Apps/ImageJ/plugins/Image Processing Course/Particle_Analyzer_TopK.java]");
+run("Install... ", "install=[Text Recognition Project/plugins/Right_Projection.java] save=[D:/Apps/ImageJ/plugins/Image Processing Course/Right_Projection.java]");
+run("Install... ", "install=[Text Recognition Project/plugins/Vertical_Projection.java] save=[D:/Apps/ImageJ/plugins/Image Processing Course/Vertical_Projection.java]");
+print("Plugins installed successfully.");

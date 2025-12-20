@@ -12,6 +12,12 @@ be used only for testing purposes. -->
 The Project aims at detection / recognition of stone inscriptions. Due to weathering, vandalism, erosion, and the complexity of ancient scripts, many of these texts are hard to read. Study, apply and test Image Processing methods and algorithms to detect Armenian inscriptions. The shapes of Armenian letters are based on vertical strokes. Based on this observation, implement and test a pipeline outlined below. Implement the steps as ImageJ plug-ins or menu commands, and save them using the ImageJ macro recorder. In addition to the recorded macro(s), submit the code of all implemented plug-ins. Other image processing and programming environments may be used only for testing purposes.
 
 # Part 1: Text Line Detection
+## Macro to run:
+
+- [`macros/LineDetection.ijm`](macros/LineDetection.ijm) — Macro implementing Part 1 (Text Line Detection). Runs the full pipeline: prepare workspace, vertical edge detection (east/west), edge strengthening and denoising, bandpass filtering for horizontally aligned text regions, particle/ellipse summarization, skeletonization, Hough transform and peak selection, mapping peaks back to the original image and drawing bounding boxes. Saves intermediate TIFFs under `.tmp/<image>/` as described in the STEPS table.
+- [`macros/SetupPlugins.ijm`](macros/SetupPlugins.ijm) — Helper macro that installs the Java plugins required for the Part 1 pipeline into a configured ImageJ plugins folder (see the "About [`macros/SetupPlugins.ijm`](macros/SetupPlugins.ijm)" note later in this README).
+
+
 ## STEPS:
 ### Combined description + implementation (concise)
 
@@ -38,6 +44,12 @@ Notes:
 
 
 # Part 2: Character Detection
+## Macro to run:
+
+- [`macros/CharacterDetection.ijm`](macros/CharacterDetection.ijm) — Macro implementing Part 2 (Character Detection). Runs the steps for cropping text lines (manual or using Part 1 results), contrast enhancement, FFT-based analysis, detection of stroke periods, vertical projection based stroke localization, and drawing the equal-width cell boxes used for character segmentation (steps 1–8).
+- [`macros/GetArmenianLetterHu.ijm`](macros/GetArmenianLetterHu.ijm) — Utility macro/script that computes Hu's invariant moments for skeletonized letter crops (used in steps 9–11). Use this to generate the 7-component Hu vectors for the alphabet samples and for cells extracted from text line images.
+
+
 ## STEPS:
 ### Project 2 Implementation Steps
 
@@ -58,8 +70,25 @@ Notes:
 | **12** | Implement (fully or partially) the steps 1-8 as a macro and construct a table to indicate which step succeeded and which one failed for each processed text line.                                                                                                                                              | The constructed table electronically and in hard copy                                                               | ✅                                                                      |
 
 
+# Required Plugins
 
-- Remove elipsoids
-- Enhance -> Binarize hough transform
-- take the centroid based on particle analysis -> take top n areas and their x,y
-- 
+- The following Java plugins (located in the `plugins/` folder of this repository) are required by the macros and should be installed into your ImageJ plugins directory before running the pipelines:
+	- [`Cut_After_Max.java`](plugins/Cut_After_Max.java)
+	- [`Elbow_Filter_Plugin.java`](plugins/Elbow_Filter_Plugin.java)
+	- [`FFT_Character_Segmenter.java`](plugins/FFT_Character_Segmenter.java)
+	- [`FFT_R_to_Vertical_Lines.java`](plugins/FFT_R_to_Vertical_Lines.java)
+	- [`Get_Horizontal_Lines_From_Hough.java`](plugins/Get_Horizontal_Lines_From_Hough.java)
+	- [`Horizontal_Elbow_Filter.java`](plugins/Horizontal_Elbow_Filter.java)
+	- [`Hough_Horizontal_Lines.java`](plugins/Hough_Horizontal_Lines.java)
+	- [`Hough_To_BoundingBox.java`](plugins/Hough_To_BoundingBox.java)
+	- [`Hough_Transform.java`](plugins/Hough_Transform.java)
+	- [`Particle_Analyzer_TopK.java`](plugins/Particle_Analyzer_TopK.java)
+	- [`Right_Projection.java`](plugins/Right_Projection.java)
+	- [`Vertical_Projection.java`](plugins/Vertical_Projection.java)
+
+- Installation: copy the `.java` files from `plugins/` into your ImageJ plugins folder and restart ImageJ so they can be compiled/loaded. Alternatively, run the provided [`macros/SetupPlugins.ijm`](macros/SetupPlugins.ijm) macro after adjusting its target paths (see below) to automate the installation.
+
+**About [`macros/SetupPlugins.ijm`](macros/SetupPlugins.ijm) **
+
+The [`macros/SetupPlugins.ijm`](macros/SetupPlugins.ijm) macro included in the [`macros/`](macros/) folder automates copying/installing the plugin source files into a configured ImageJ plugins folder. It uses ImageJ's `Install...` command to copy each `.java` file.
+Before running [`macros/SetupPlugins.ijm`](macros/SetupPlugins.ijm), open the macro and update the `save=[...]` paths to point to your local ImageJ plugins folder (for example `C:/Users/<you>/ImageJ/plugins/` or similar). After installation, restart ImageJ so the newly installed plugins are compiled and available.
